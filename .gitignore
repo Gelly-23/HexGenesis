@@ -1,0 +1,17 @@
+## Build results
+build/
+DerivedData/
+
+## Architecture-specific build products
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+## User-specific files (CRITICAL: 阻止上传个人隐私和绝对路径)
+*.xcuserdatad
+*.xcuserstate
+xcuserdata/
+
+## macOS system files
+.DS_Store
+*.swp

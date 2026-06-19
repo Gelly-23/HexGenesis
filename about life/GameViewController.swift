@@ -1,55 +1,29 @@
-//
-//  GameViewController.swift
-//  about life
-//
-//  Created by Gelly on 2025/11/29.
-//
-
 import UIKit
 import SpriteKit
-import GameplayKit
 
-class GameViewController: UIViewController {
+final class GameViewController: UIViewController {
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    override func loadView() {
+        let skView = SKView(frame: .zero)
+        // 🚨 核心检查点：这一行必须有，否则双指无法被识别
+        skView.isMultipleTouchEnabled = true
+        self.view = skView
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        guard let skView = self.view as? SKView else { return }
         
-        // Load 'GameScene.sks' as a GKScene. This provides gameplay related content
-        // including entities and graphs.
-        if let scene = GKScene(fileNamed: "GameScene") {
-            
-            // Get the SKScene from the loaded GKScene
-            if let sceneNode = scene.rootNode as! GameScene? {
-                
-                // Copy gameplay related content over to the scene
-                sceneNode.entities = scene.entities
-                sceneNode.graphs = scene.graphs
-                
-                // Set the scale mode to scale to fit the window
-                sceneNode.scaleMode = .aspectFill
-                
-                // Present the scene
-                if let view = self.view as! SKView? {
-                    view.presentScene(sceneNode)
-                    
-                    view.ignoresSiblingOrder = true
-                    
-                    view.showsFPS = true
-                    view.showsNodeCount = true
-                }
-            }
+        // 防止重复 Present
+        if skView.scene == nil {
+            let scene = GameScene(size: skView.bounds.size)
+            scene.scaleMode = .resizeFill
+            skView.presentScene(scene)
+            skView.ignoresSiblingOrder = true
+            // skView.showsFPS = true // 调试用，可不加
+            // skView.showsNodeCount = true // 调试用
         }
     }
 
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return .allButUpsideDown
-        } else {
-            return .all
-        }
-    }
-
-    override var prefersStatusBarHidden: Bool {
-        return true
-    }
+    override var prefersStatusBarHidden: Bool { true }
 }
