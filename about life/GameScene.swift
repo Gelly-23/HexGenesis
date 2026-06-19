@@ -260,15 +260,23 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
             for n in c.neighbors { candidates.insert(n) }
         }
         
+        let safeLower = min(limitLower, limitUpper)
+        let safeUpper = max(limitLower, limitUpper)
+        
         for c in candidates {
             let current = worldData[c] ?? 0
             var neighborsSum = 0
             for n in c.neighbors { neighborsSum += worldData[n] ?? 0 }
             
             var nextVal = current
-            if neighborsSum <= limitLower { nextVal = max(0, current - 1) }
-            else if neighborsSum > limitLower && neighborsSum <= limitUpper { nextVal = min(3, current + 1) }
-            else { nextVal = 0 }
+            
+            if neighborsSum <= safeLower {
+                nextVal = max(0, current - 1)
+            } else if neighborsSum > safeLower && neighborsSum <= safeUpper {
+                nextVal = min(3, current + 1)
+            } else {
+                nextVal = 0
+            }
             
             if nextVal != current {
                 if nextVal == 0 { nextWorld.removeValue(forKey: c) }
