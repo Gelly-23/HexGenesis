@@ -34,9 +34,10 @@ struct HexCoord: Hashable {
     }
 }
 
-// MARK: - 视觉节点类 (液态玻璃效果)
+// MARK: - 视觉节点类
 class HexNode: SKShapeNode {
     let coord: HexCoord
+    private var currentRenderVal: Int = -1 // 缓存当前渲染状态，避免重复触发动画
     
     init(size: CGFloat, coord: HexCoord) {
         self.coord = coord
@@ -60,43 +61,50 @@ class HexNode: SKShapeNode {
     
     required init?(coder aDecoder: NSCoder) { fatalError() }
     
-    func animateToState(color: UIColor) {
-        if self.fillColor.isEqual(color) {
-            let scaleDown = SKAction.scale(to: 0.9, duration: 0.1)
-            let scaleUp = SKAction.scale(to: 1.0, duration: 0.3)
-            scaleUp.timingMode = .easeOut
-            self.run(SKAction.sequence([scaleDown, scaleUp]))
+    func updateRenderState(val: Int, force: Bool = false) {
+        if !force && currentRenderVal == val { return }
+        currentRenderVal = val
+        
+        let targetColor: UIColor
+        switch val {
+        case 1:  targetColor = UIColor(red: 0.2, green: 0.8, blue: 0.4, alpha: 0.7)
+        case 2:  targetColor = UIColor(red: 1.0, green: 0.6, blue: 0.2, alpha: 0.7)
+        case 3:  targetColor = UIColor(red: 1.0, green: 0.3, blue: 0.3, alpha: 0.7)
+        default: targetColor = .clear
+        }
+        
+        animateToState(color: targetColor)
+    }
+    
+    private func animateToState(color: UIColor) {
+        self.removeAllActions() // 防止连续演化时动画叠加卡死
+        
+        if color == .clear {
+            // 优雅淡出回背景状态
+            let fadeColor = SKAction.run {
+                self.fillColor = .clear
+                self.strokeColor = .white.withAlphaComponent(0.4)
+            }
+            let scaleBack = SKAction.scale(to: 1.0, duration: 0.2)
+            self.run(SKAction.group([fadeColor, scaleBack]))
             return
         }
         
-        let scaleDown = SKAction.scale(to: 0.6, duration: 0.15)
-        scaleDown.timingMode = .easeIn
-        
+        let scaleDown = SKAction.scale(to: 0.8, duration: 0.1)
         let changeColor = SKAction.run {
             self.fillColor = color
-            self.strokeColor = color.withAlphaComponent(0.8).lighter(by: 30) ?? .white
+            var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
+            if color.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha) {
+                let lighterColor = UIColor(hue: hue, saturation: saturation, brightness: min(brightness * 1.3, 1.0), alpha: alpha)
+                self.strokeColor = lighterColor.withAlphaComponent(0.8)
+            } else {
+                self.strokeColor = color.withAlphaComponent(0.8)
+            }
         }
-        
-        let scaleUp = SKAction.scale(to: 1.0, duration: 0.4)
+        let scaleUp = SKAction.scale(to: 1.0, duration: 0.25)
         scaleUp.timingMode = .easeOut
         
         self.run(SKAction.sequence([scaleDown, changeColor, scaleUp]))
-    }
-}
-
-extension UIColor {
-    func lighter(by percentage: CGFloat = 30.0) -> UIColor? {
-        return self.adjust(by: abs(percentage) )
-    }
-    func adjust(by percentage: CGFloat = 30.0) -> UIColor? {
-        var r:CGFloat=0, g:CGFloat=0, b:CGFloat=0, a:CGFloat=0
-        if(getRed(&r, green: &g, blue: &b, alpha: &a)){
-            return UIColor(red: min(r + percentage/100, 1.0),
-                           green: min(g + percentage/100, 1.0),
-                           blue: min(b + percentage/100, 1.0),
-                           alpha: a)
-        }
-        return nil
     }
 }
 
@@ -112,13 +120,13 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
     
     private var worldData: [HexCoord: Int] = [:]
     private var visibleNodes: [HexCoord: HexNode] = [:]
+    private var activeBackgroundCoords = Set<HexCoord>()
     
     private var isDrawMode: Bool = false
     private var isDraggingToDraw: Bool = false
     private var lastAddedCoord: HexCoord?
     
     private var cameraNode: SKCameraNode!
-    private var backgroundGridNode: SKShapeNode?
     
     private var isRunning: Bool = false {
         didSet { UIApplication.shared.isIdleTimerDisabled = isRunning }
@@ -133,84 +141,93 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
         
         updateSettings()
         setupCamera()
-        drawStaticBackgroundGrid()
         setupGestures(in: view)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(onStart), name: .gameStart, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(onReset), name: .gameReset, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(onRecenter), name: .gameRecenter, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(onStep), name: .gameStep, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(onModeChange(_:)), name: .drawModeChanged, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(onRulesChanged), name: .rulesChanged, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(onRulesChanged), name: .speedChanged, object: nil)
+        let nc = NotificationCenter.default
+        nc.addObserver(self, selector: #selector(onStart), name: .gameStart, object: nil)
+        nc.addObserver(self, selector: #selector(onReset), name: .gameReset, object: nil)
+        nc.addObserver(self, selector: #selector(onRecenter), name: .gameRecenter, object: nil)
+        nc.addObserver(self, selector: #selector(onStep), name: .gameStep, object: nil)
+        nc.addObserver(self, selector: #selector(onModeChange(_:)), name: .drawModeChanged, object: nil)
+        nc.addObserver(self, selector: #selector(onRulesChanged), name: .rulesChanged, object: nil)
+        nc.addObserver(self, selector: #selector(onRulesChanged), name: .speedChanged, object: nil)
+        
+        dynamicViewportLodLoading()
     }
     
-    // 绘制无限网格背景
-    private func drawStaticBackgroundGrid() {
-        let gridShape = SKShapeNode()
-        let path = CGMutablePath()
-        let r = hexRadius
-        let size = r - 0.5
-        let mapRadius = 80
+    override func willMove(from view: SKView) {
+        NotificationCenter.default.removeObserver(self)
+        if let pinch = pinchGesture { view.removeGestureRecognizer(pinch) }
+        if let pan = panGesture { view.removeGestureRecognizer(pan) }
+        super.willMove(from: view)
+    }
+    
+    /// 按需加载/卸载视口内的所有格子节点
+    private func dynamicViewportLodLoading() {
+        guard let view = self.view, let cam = cameraNode else { return }
         
-        for q in -mapRadius...mapRadius {
-            let r1 = max(-mapRadius, -q - mapRadius)
-            let r2 = min(mapRadius, -q + mapRadius)
-            
-            for rCoord in r1...r2 {
-                let coord = HexCoord(q: q, r: rCoord)
-                let center = coord.toPoint(size: r)
-                for i in 0..<6 {
-                    let angle = CGFloat(i) * 60 * .pi / 180
-                    let p = CGPoint(x: center.x + size * cos(angle),
-                                    y: center.y + size * sin(angle))
-                    if i == 0 { path.move(to: p) } else { path.addLine(to: p) }
+        let viewSize = view.bounds.size
+        let halfW = (viewSize.width / 2.0) * cam.xScale
+        let halfH = (viewSize.height / 2.0) * cam.yScale
+        
+        let padding = hexRadius * 4.0
+        let minX = cam.position.x - halfW - padding
+        let maxX = cam.position.x + halfW + padding
+        let minY = cam.position.y - halfH - padding
+        let maxY = cam.position.y + halfH + padding
+        
+        let topLeftCoord = HexCoord.from(point: CGPoint(x: minX, y: maxY), size: hexRadius)
+        let bottomRightCoord = HexCoord.from(point: CGPoint(x: maxX, y: minY), size: hexRadius)
+        
+        let minQ = min(topLeftCoord.q, bottomRightCoord.q) - 2
+        let maxQ = max(topLeftCoord.q, bottomRightCoord.q) + 2
+        let minR = min(topLeftCoord.r, bottomRightCoord.r) - 2
+        let maxR = max(topLeftCoord.r, bottomRightCoord.r) + 2
+        
+        var currentVisibleCoords = Set<HexCoord>()
+        
+        for q in minQ...maxQ {
+            for r in minR...maxR {
+                let coord = HexCoord(q: q, r: r)
+                let pt = coord.toPoint(size: hexRadius)
+                if pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY {
+                    currentVisibleCoords.insert(coord)
                 }
-                path.closeSubpath()
             }
         }
         
-        gridShape.path = path
-        gridShape.strokeColor = UIColor.white.withAlphaComponent(0.05)
-        gridShape.lineWidth = 1
-        gridShape.zPosition = -100
-        
-        self.backgroundGridNode?.removeFromParent()
-        addChild(gridShape)
-        self.backgroundGridNode = gridShape
-    }
-    
-    private func renderVisibleTiles() {
-        for (coord, node) in visibleNodes {
-            if worldData[coord] == nil {
-                let scaleDown = SKAction.scale(to: 0.0, duration: 0.2)
-                scaleDown.timingMode = .easeIn
-                let remove = SKAction.removeFromParent()
-                node.run(SKAction.sequence([scaleDown, remove]))
+        // 1. 动态回收移出视口的节点
+        let toRemove = activeBackgroundCoords.subtracting(currentVisibleCoords)
+        for coord in toRemove {
+            if let node = visibleNodes[coord] {
+                node.removeFromParent()
                 visibleNodes.removeValue(forKey: coord)
             }
         }
         
-        for (coord, val) in worldData {
-            let node: HexNode
-            if let existing = visibleNodes[coord] {
-                node = existing
-            } else {
-                node = HexNode(size: hexRadius, coord: coord)
+        // 2. 动态实例化新进入视口的节点
+        let toAdd = currentVisibleCoords.subtracting(activeBackgroundCoords)
+        for coord in toAdd {
+            if visibleNodes[coord] == nil {
+                let node = HexNode(size: hexRadius, coord: coord)
                 node.position = coord.toPoint(size: hexRadius)
-                node.setScale(0.0)
+                
+                // 实例化时，直接根据当前真实数据渲染正确颜色（哪怕是0，也会被正确设为clear）
+                let val = worldData[coord] ?? 0
+                node.updateRenderState(val: val, force: true)
+                
                 addChild(node)
                 visibleNodes[coord] = node
             }
-            
-            let targetColor: UIColor
-            switch val {
-            case 1: targetColor = UIColor(red: 0.2, green: 0.8, blue: 0.4, alpha: 0.7)
-            case 2: targetColor = UIColor(red: 1.0, green: 0.6, blue: 0.2, alpha: 0.7)
-            case 3: targetColor = UIColor(red: 1.0, green: 0.3, blue: 0.3, alpha: 0.7)
-            default: targetColor = .clear
-            }
-            node.animateToState(color: targetColor)
+        }
+        activeBackgroundCoords = currentVisibleCoords
+    }
+    
+    /// 事件驱动：刷新当前所有**可见节点**的色彩表现（再也不会漏掉数据为0的死细胞）
+    private func renderVisibleTilesOnDemand() {
+        for (coord, node) in visibleNodes {
+            let val = worldData[coord] ?? 0
+            node.updateRenderState(val: val)
         }
     }
 
@@ -221,8 +238,10 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
         if isRunning && currentTime - lastUpdateTime > currentInterval {
             lastUpdateTime = currentTime
             stepSimulation()
+            renderVisibleTilesOnDemand()
         }
-        renderVisibleTiles()
+        
+        dynamicViewportLodLoading()
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -239,7 +258,14 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
         let point = t.location(in: self)
         let coord = HexCoord.from(point: point, size: hexRadius)
         if coord != lastAddedCoord {
-            if worldData[coord] == nil { worldData[coord] = 3; lastAddedCoord = coord }
+            worldData[coord] = 3
+            lastAddedCoord = coord
+            // 数据改变后即时渲染
+            if let node = visibleNodes[coord] {
+                node.updateRenderState(val: 3)
+            } else {
+                dynamicViewportLodLoading()
+            }
         }
     }
     
@@ -248,20 +274,33 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
     private func handleTap(_ coord: HexCoord) {
         let val = worldData[coord] ?? 0
         let newVal = (val == 0) ? 3 : val - 1
-        if newVal == 0 { worldData.removeValue(forKey: coord) }
-        else { worldData[coord] = newVal }
+        
+        if newVal == 0 {
+            worldData.removeValue(forKey: coord)
+        } else {
+            worldData[coord] = newVal
+        }
+        
+        if let node = visibleNodes[coord] {
+            node.updateRenderState(val: newVal)
+        } else {
+            dynamicViewportLodLoading()
+        }
     }
     
+    /// 核心算法：严格对齐 UI 区间（≤5 衰减、6~9 成长、>9 过载）的纯数据演化
     private func stepSimulation() {
         var nextWorld = worldData
         var candidates = Set<HexCoord>()
+        
+        // 收集所有需要评估的格子：当前活着的格子，以及它们的所有邻居
         for (c, _) in worldData {
             candidates.insert(c)
             for n in c.neighbors { candidates.insert(n) }
         }
         
-        let safeLower = min(limitLower, limitUpper)
-        let safeUpper = max(limitLower, limitUpper)
+        let safeLower = min(limitLower, limitUpper) // 严格对应 UI 的 5
+        let safeUpper = max(limitLower, limitUpper) // 严格对应 UI 的 9
         
         for c in candidates {
             let current = worldData[c] ?? 0
@@ -270,19 +309,37 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
             
             var nextVal = current
             
+            // ==========================================
+            // 严格映射 UI 三段区间，绝无边界歧义
+            // ==========================================
             if neighborsSum <= safeLower {
+                // 【区间一：0 ~ 5】衰减
+                // 活细胞能量递减，空格子（0-1=-1 -> max后保持0）继续保持空
                 nextVal = max(0, current - 1)
-            } else if neighborsSum > safeLower && neighborsSum <= safeUpper {
-                nextVal = min(3, current + 1)
+                
+            } else if neighborsSum <= safeUpper {
+                // 【区间二：6 ~ 9】成长 / 诞生
+                if current == 0 {
+                    nextVal = 1 // 空地孵化诞生新元素
+                } else {
+                    nextVal = min(3, current + 1) // 活细胞能量递增，最高为 3
+                }
+                
             } else {
+                // 【区间三：> 9】过载
+                // 超过上限，能量饱和坍塌，直接灰飞烟灭
                 nextVal = 0
             }
             
-            if nextVal != current {
-                if nextVal == 0 { nextWorld.removeValue(forKey: c) }
-                else { nextWorld[c] = nextVal }
+            // 将计算出的新状态安全写入下一帧的缓冲字典中
+            if nextVal == 0 {
+                nextWorld.removeValue(forKey: c)
+            } else {
+                nextWorld[c] = nextVal
             }
         }
+        
+        // 整个视口扫描完毕，一次性切回主缓冲
         worldData = nextWorld
     }
     
@@ -319,6 +376,7 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
             let clamped = max(0.5, min(val, 4.0))
             cam.setScale(clamped)
             g.scale = 1.0
+            dynamicViewportLodLoading()
         }
     }
     
@@ -331,15 +389,26 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
                 y: cam.position.y + t.y * cam.yScale
             )
             g.setTranslation(.zero, in: view)
+            dynamicViewportLodLoading()
         }
     }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool { true }
     
     @objc private func onStart() { isRunning.toggle() }
-    @objc private func onReset() { isRunning = false; worldData.removeAll(); visibleNodes.removeAll(); children.forEach { if $0 is HexNode { $0.removeFromParent() } } }
-    @objc private func onRecenter() { cameraNode.run(SKAction.move(to: .zero, duration: 0.3)) }
-    @objc private func onStep() { if !isRunning { stepSimulation() } }
+    
+    // 【核心修复】完美重置所有状态，防止视口缓存导致的全黑漏洞
+    @objc private func onReset() {
+        isRunning = false
+        worldData.removeAll()
+        visibleNodes.removeAll()
+        activeBackgroundCoords.removeAll() // 必须清空，否则LOD认为节点还在屏幕上
+        children.forEach { if $0 is HexNode { $0.removeFromParent() } }
+        dynamicViewportLodLoading()        // 立即重新生成当前视口的空白网格背景
+    }
+    
+    @objc private func onRecenter() { cameraNode.run(SKAction.move(to: .zero, duration: 0.3)); dynamicViewportLodLoading() }
+    @objc private func onStep() { if !isRunning { stepSimulation(); renderVisibleTilesOnDemand() } }
     @objc private func onModeChange(_ n: Notification) {
         if let mode = n.userInfo?["isDrawMode"] as? Bool {
             isDrawMode = mode
