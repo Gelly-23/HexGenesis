@@ -8,10 +8,17 @@ DerivedData/
 *.xcscmblueprint
 
 ## User-specific files (CRITICAL: 阻止上传个人隐私和绝对路径)
-*.xcuserdatad
+*.xcuserdata
 *.xcuserstate
 xcuserdata/
 
 ## macOS system files
 .DS_Store
 *.swp
+
+.build/
+.swiftpm/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
