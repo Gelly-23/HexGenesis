@@ -122,7 +122,7 @@ struct GameHostView: View {
     }
     
     // MARK: - 辅助组件
-    private func controlButton(icon: String, label: String, isEnabled: Bool, action: @escaping () -> Void) -> some View {
+    private func controlButton(icon: String, label: LocalizedStringKey, isEnabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 3) {
                 Image(systemName: icon)

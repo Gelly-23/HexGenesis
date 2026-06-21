@@ -3,12 +3,31 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     
-    // 演化速度 (0.25 ~ 3.0)，默认 1.0
     @AppStorage("simulationSpeed") private var simulationSpeed: Double = 1.0
+    // 引入语言存储变量
+    @AppStorage("appLanguage") private var appLanguage: String = "zh-Hans"
     
     var body: some View {
         NavigationStack {
             List {
+                // 选项 0: 通用设置
+                Section {
+                    Picker(selection: $appLanguage) {
+                        Text("简体中文").tag("zh-Hans")
+                        Text("English").tag("en")
+                    } label: {
+                        Label {
+                            Text("语言 / Language")
+                                .font(.headline)
+                        } icon: {
+                            Image(systemName: "globe")
+                                .foregroundStyle(.indigo)
+                        }
+                    }
+                } header: {
+                    Text("通用 / General")
+                }
+                
                 // 选项 1: 规则设定
                 Section {
                     NavigationLink(destination: RuleSettingsView()) {
@@ -43,7 +62,7 @@ struct SettingsView: View {
                                 .monospacedDigit()
                         }
                         
-                        // 速度滑块：0.25x 到 3.0x
+                        // 速度滑块
                         HStack {
                             Image(systemName: "tortoise.fill")
                                 .foregroundStyle(.secondary)
@@ -84,11 +103,6 @@ struct SettingsView: View {
     }
 }
 
-// 扩展通知名称
 extension Notification.Name {
     static let speedChanged = Notification.Name("speedChanged")
-}
-
-#Preview {
-    SettingsView()
 }
