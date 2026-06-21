@@ -28,10 +28,4 @@ final class AppState: ObservableObject {
         hasSeenOnboarding = false
         isLoggedIn = false
     }
-}//
-//  AppState.swift
-//  about life
-//
-//  Created by Gelly on 2025/12/12.
-//
-
+}

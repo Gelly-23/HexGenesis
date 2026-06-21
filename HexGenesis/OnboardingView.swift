@@ -77,9 +77,3 @@ struct OnboardingView: View {
         }
     }
 }//
-//  OnboardingView.swift
-//  about life
-//
-//  Created by Gelly on 2025/12/12.
-//
-

@@ -63,6 +63,16 @@
         }
       }
     },
+    "六边形宇宙" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HexGenesis"
+          }
+        }
+      }
+    },
     "初版：假登录（本地标记）。后续再接真实账号体系。" : {
       "localizations" : {
         "en" : {
@@ -249,16 +259,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Simplified Chinese"
-          }
-        }
-      }
-    },
-    "结构和规则" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Structure & Rules"
           }
         }
       }

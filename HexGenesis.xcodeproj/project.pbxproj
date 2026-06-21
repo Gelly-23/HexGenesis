@@ -24,25 +24,25 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		2F24BD672EDADE49006F5A71 /* about life.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "about life.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2F24BD802EDADE49006F5A71 /* about lifeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "about lifeTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2F24BD8A2EDADE49006F5A71 /* about lifeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "about lifeUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F24BD672EDADE49006F5A71 /* HexGenesis.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HexGenesis.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F24BD802EDADE49006F5A71 /* HexGenesisTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HexGenesisTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F24BD8A2EDADE49006F5A71 /* HexGenesisUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HexGenesisUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		2F24BD692EDADE49006F5A71 /* about life */ = {
+		2F24BD692EDADE49006F5A71 /* HexGenesis */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "about life";
+			path = HexGenesis;
 			sourceTree = "<group>";
 		};
-		2F24BD832EDADE49006F5A71 /* about lifeTests */ = {
+		2F24BD832EDADE49006F5A71 /* HexGenesisTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "about lifeTests";
+			path = HexGenesisTests;
 			sourceTree = "<group>";
 		};
-		2F24BD8D2EDADE49006F5A71 /* about lifeUITests */ = {
+		2F24BD8D2EDADE49006F5A71 /* HexGenesisUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "about lifeUITests";
+			path = HexGenesisUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,9 +75,9 @@
 		2F24BD5E2EDADE49006F5A71 = {
 			isa = PBXGroup;
 			children = (
-				2F24BD692EDADE49006F5A71 /* about life */,
-				2F24BD832EDADE49006F5A71 /* about lifeTests */,
-				2F24BD8D2EDADE49006F5A71 /* about lifeUITests */,
+				2F24BD692EDADE49006F5A71 /* HexGenesis */,
+				2F24BD832EDADE49006F5A71 /* HexGenesisTests */,
+				2F24BD8D2EDADE49006F5A71 /* HexGenesisUITests */,
 				2F24BD682EDADE49006F5A71 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -85,9 +85,9 @@
 		2F24BD682EDADE49006F5A71 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2F24BD672EDADE49006F5A71 /* about life.app */,
-				2F24BD802EDADE49006F5A71 /* about lifeTests.xctest */,
-				2F24BD8A2EDADE49006F5A71 /* about lifeUITests.xctest */,
+				2F24BD672EDADE49006F5A71 /* HexGenesis.app */,
+				2F24BD802EDADE49006F5A71 /* HexGenesisTests.xctest */,
+				2F24BD8A2EDADE49006F5A71 /* HexGenesisUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,9 +95,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2F24BD662EDADE49006F5A71 /* about life */ = {
+		2F24BD662EDADE49006F5A71 /* HexGenesis */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2F24BD942EDADE49006F5A71 /* Build configuration list for PBXNativeTarget "about life" */;
+			buildConfigurationList = 2F24BD942EDADE49006F5A71 /* Build configuration list for PBXNativeTarget "HexGenesis" */;
 			buildPhases = (
 				2F24BD632EDADE49006F5A71 /* Sources */,
 				2F24BD642EDADE49006F5A71 /* Frameworks */,
@@ -108,18 +108,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				2F24BD692EDADE49006F5A71 /* about life */,
+				2F24BD692EDADE49006F5A71 /* HexGenesis */,
 			);
-			name = "about life";
+			name = HexGenesis;
 			packageProductDependencies = (
 			);
 			productName = "about life";
-			productReference = 2F24BD672EDADE49006F5A71 /* about life.app */;
+			productReference = 2F24BD672EDADE49006F5A71 /* HexGenesis.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2F24BD7F2EDADE49006F5A71 /* about lifeTests */ = {
+		2F24BD7F2EDADE49006F5A71 /* HexGenesisTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2F24BD972EDADE49006F5A71 /* Build configuration list for PBXNativeTarget "about lifeTests" */;
+			buildConfigurationList = 2F24BD972EDADE49006F5A71 /* Build configuration list for PBXNativeTarget "HexGenesisTests" */;
 			buildPhases = (
 				2F24BD7C2EDADE49006F5A71 /* Sources */,
 				2F24BD7D2EDADE49006F5A71 /* Frameworks */,
@@ -131,18 +131,18 @@
 				2F24BD822EDADE49006F5A71 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				2F24BD832EDADE49006F5A71 /* about lifeTests */,
+				2F24BD832EDADE49006F5A71 /* HexGenesisTests */,
 			);
-			name = "about lifeTests";
+			name = HexGenesisTests;
 			packageProductDependencies = (
 			);
 			productName = "about lifeTests";
-			productReference = 2F24BD802EDADE49006F5A71 /* about lifeTests.xctest */;
+			productReference = 2F24BD802EDADE49006F5A71 /* HexGenesisTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		2F24BD892EDADE49006F5A71 /* about lifeUITests */ = {
+		2F24BD892EDADE49006F5A71 /* HexGenesisUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2F24BD9A2EDADE49006F5A71 /* Build configuration list for PBXNativeTarget "about lifeUITests" */;
+			buildConfigurationList = 2F24BD9A2EDADE49006F5A71 /* Build configuration list for PBXNativeTarget "HexGenesisUITests" */;
 			buildPhases = (
 				2F24BD862EDADE49006F5A71 /* Sources */,
 				2F24BD872EDADE49006F5A71 /* Frameworks */,
@@ -154,13 +154,13 @@
 				2F24BD8C2EDADE49006F5A71 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				2F24BD8D2EDADE49006F5A71 /* about lifeUITests */,
+				2F24BD8D2EDADE49006F5A71 /* HexGenesisUITests */,
 			);
-			name = "about lifeUITests";
+			name = HexGenesisUITests;
 			packageProductDependencies = (
 			);
 			productName = "about lifeUITests";
-			productReference = 2F24BD8A2EDADE49006F5A71 /* about lifeUITests.xctest */;
+			productReference = 2F24BD8A2EDADE49006F5A71 /* HexGenesisUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -171,7 +171,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2610;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					2F24BD662EDADE49006F5A71 = {
 						CreatedOnToolsVersion = 26.1.1;
@@ -186,10 +186,11 @@
 					};
 				};
 			};
-			buildConfigurationList = 2F24BD622EDADE49006F5A71 /* Build configuration list for PBXProject "about life" */;
+			buildConfigurationList = 2F24BD622EDADE49006F5A71 /* Build configuration list for PBXProject "HexGenesis" */;
 			developmentRegion = "zh-Hans";
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				"zh-Hans",
 				en,
 				Base,
 			);
@@ -200,9 +201,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2F24BD662EDADE49006F5A71 /* about life */,
-				2F24BD7F2EDADE49006F5A71 /* about lifeTests */,
-				2F24BD892EDADE49006F5A71 /* about lifeUITests */,
+				2F24BD662EDADE49006F5A71 /* HexGenesis */,
+				2F24BD7F2EDADE49006F5A71 /* HexGenesisTests */,
+				2F24BD892EDADE49006F5A71 /* HexGenesisUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -258,12 +259,12 @@
 /* Begin PBXTargetDependency section */
 		2F24BD822EDADE49006F5A71 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2F24BD662EDADE49006F5A71 /* about life */;
+			target = 2F24BD662EDADE49006F5A71 /* HexGenesis */;
 			targetProxy = 2F24BD812EDADE49006F5A71 /* PBXContainerItemProxy */;
 		};
 		2F24BD8C2EDADE49006F5A71 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2F24BD662EDADE49006F5A71 /* about life */;
+			target = 2F24BD662EDADE49006F5A71 /* HexGenesis */;
 			targetProxy = 2F24BD8B2EDADE49006F5A71 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -274,6 +275,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -340,6 +342,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -476,7 +479,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/about life.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/about life";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HexGenesis.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HexGenesis";
 			};
 			name = Debug;
 		};
@@ -498,7 +501,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/about life.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/about life";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HexGenesis.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HexGenesis";
 			};
 			name = Release;
 		};
@@ -545,7 +548,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2F24BD622EDADE49006F5A71 /* Build configuration list for PBXProject "about life" */ = {
+		2F24BD622EDADE49006F5A71 /* Build configuration list for PBXProject "HexGenesis" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2F24BD922EDADE49006F5A71 /* Debug */,
@@ -554,7 +557,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2F24BD942EDADE49006F5A71 /* Build configuration list for PBXNativeTarget "about life" */ = {
+		2F24BD942EDADE49006F5A71 /* Build configuration list for PBXNativeTarget "HexGenesis" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2F24BD952EDADE49006F5A71 /* Debug */,
@@ -563,7 +566,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2F24BD972EDADE49006F5A71 /* Build configuration list for PBXNativeTarget "about lifeTests" */ = {
+		2F24BD972EDADE49006F5A71 /* Build configuration list for PBXNativeTarget "HexGenesisTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2F24BD982EDADE49006F5A71 /* Debug */,
@@ -572,7 +575,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2F24BD9A2EDADE49006F5A71 /* Build configuration list for PBXNativeTarget "about lifeUITests" */ = {
+		2F24BD9A2EDADE49006F5A71 /* Build configuration list for PBXNativeTarget "HexGenesisUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2F24BD9B2EDADE49006F5A71 /* Debug */,

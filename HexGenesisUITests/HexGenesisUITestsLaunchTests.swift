@@ -1,13 +1,6 @@
-//
-//  about_lifeUITestsLaunchTests.swift
-//  about lifeUITests
-//
-//  Created by Gelly on 2025/11/29.
-//
-
 import XCTest
 
-final class about_lifeUITestsLaunchTests: XCTestCase {
+final class HexGenesisUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

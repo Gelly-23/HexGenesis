@@ -2,6 +2,9 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject private var appState: AppState
+    
+    @AppStorage("appLanguage") private var appLanguage: String = "zh-Hans"
+      
     @State private var showGame = false
 
     var body: some View {
@@ -24,7 +27,7 @@ struct HomeView: View {
 
                 Spacer()
             }
-            .navigationTitle("结构和规则")
+            .navigationTitle("六边形宇宙")
             .fullScreenCover(isPresented: $showGame) {
                 GameHostView(isPresented: $showGame)
             }

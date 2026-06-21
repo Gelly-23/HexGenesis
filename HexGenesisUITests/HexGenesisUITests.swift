@@ -1,13 +1,6 @@
-//
-//  about_lifeUITests.swift
-//  about lifeUITests
-//
-//  Created by Gelly on 2025/11/29.
-//
-
 import XCTest
 
-final class about_lifeUITests: XCTestCase {
+final class HexGenesisUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

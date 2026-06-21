@@ -1,10 +1,3 @@
-//
-//  AppDelegate.swift
-//  about life
-//
-//  Created by Gelly on 2025/11/29.
-//
-
 import UIKit
 
 @main

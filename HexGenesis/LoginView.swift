@@ -49,9 +49,5 @@ struct LoginView: View {
         }
     }
 }//
-//  LoginView.swift
-//  about life
-//
-//  Created by Gelly on 2025/12/12.
-//
+
 
