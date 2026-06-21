@@ -419,9 +419,19 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
     
     private func updateSettings() {
         let d = UserDefaults.standard
-        limitLower = d.integer(forKey: "rule_limitLower"); if limitLower == 0 { limitLower = 5 }
-        limitUpper = d.integer(forKey: "rule_limitUpper"); if limitUpper == 0 { limitUpper = 9 }
-        let savedSpeed = d.double(forKey: "simulationSpeed")
-        speedMultiplier = savedSpeed > 0 ? savedSpeed : 1.0
+        
+        // 1. 标准安全的默认值注册：只在 App 初次安装且未设置时生效，绝不覆盖用户的真实意图
+        d.register(defaults: [
+            "rule_limitLower": 5,
+            "rule_limitUpper": 9,
+            "simulationSpeed": 1.0
+        ])
+        
+        // 2. 直接放心读取。此时如果读到 0，那就是用户在 UI 上真真切切拉到的 0
+        limitLower = d.integer(forKey: "rule_limitLower")
+        limitUpper = d.integer(forKey: "rule_limitUpper")
+        
+        // 速度也同理，直接读取注册好的安全值
+        speedMultiplier = d.double(forKey: "simulationSpeed")
     }
 }
