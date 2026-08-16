@@ -29,6 +29,37 @@ emergent life that appear from simple systems.
 
 The core simulation engine is functional, and future versions will explore more complex evolution mechanisms.
 
+## Installation
+
+### Requirements
+
+- macOS
+- Xcode 16 or later
+- iOS 17 or later (for device testing)
+
+### Run Locally
+
+1. Clone this repository:
+
+```bash
+git clone https://github.com/Gelly-23/HexGenesis.git
+```
+2. Open the project:
+```bash
+cd HexGenesis
+open HexGenesis.xcodeproj
+```
+3. Build and run the project using Xcode.
+
+### Running on a Real Device
+To run HexGenesis on a physical iPhone or iPad:
+1. Open the project in Xcode.
+2. Select your Apple Developer Team in Signing & Capabilities.
+3. Connect your device.
+4. Select your device as the build target.
+5. Press Run.
+- Note: A valid Apple Developer account may be required for device deployment.
+
 ------------------------------------------------------------------------
 
 ## Origin of HexGenesis
