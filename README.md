@@ -118,8 +118,9 @@ HexGenesis without installing the app.
 
 You can experience the web version directly in your browser:
 
-- [English Web Demo](./HexGenesis-English.html)
-- [中文网页体验](./HexGenesis.html)
+[English Web Demo](https://gelly-23.github.io/HexGenesis/HexGenesis-English.html)
+
+[中文网页体验](https://gelly-23.github.io/HexGenesis/HexGenesis.html)
 
 ------------------------------------------------------------------------
 
