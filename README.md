@@ -1,4 +1,17 @@
 # HexGenesis
+A hexagonal cellular automaton universe simulation built with Swift and SpriteKit.
+Explore how simple rules create complex behaviors in a virtual universe.
+
+<p align="center">
+<img src="images/icon.png" width="200">
+</p>
+<p align="center">
+<img src="images/evolution/evolution-lifes.gif">
+</p>
+
+ Try HexGenesis Online: 
+[English Web Demo](https://gelly-23.github.io/HexGenesis/HexGenesis-English.html)
+[中文网页体验](https://gelly-23.github.io/HexGenesis/HexGenesis.html)
 
 ## Introduction
 
@@ -9,6 +22,12 @@ observe how they evolve inside the universe and explore the sparks of
 emergent life that appear from simple systems.
 
 <img src="images/icon.png" width="254">
+
+## Project Status
+
+🚧 HexGenesis is currently an experimental open-source project.
+
+The core simulation engine is functional, and future versions will explore more complex evolution mechanisms.
 
 ------------------------------------------------------------------------
 
