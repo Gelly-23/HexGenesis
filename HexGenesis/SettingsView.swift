@@ -5,7 +5,7 @@ struct SettingsView: View {
     
     @AppStorage("simulationSpeed") private var simulationSpeed: Double = 1.0
     // 引入语言存储变量
-    @AppStorage("appLanguage") private var appLanguage: String = "zh-Hans"
+    @AppStorage("appLanguage") private var appLanguage: String = "en"
     
     var body: some View {
         NavigationStack {

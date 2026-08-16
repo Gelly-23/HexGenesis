@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HexGenesis</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #1a1f29;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #fff;
+        }
+        #canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            cursor: grab;
+        }
+        #canvas:active {
+            cursor: grabbing;
+        }
+        #canvas.draw-mode {
+            cursor: crosshair;
+        }
+        /* 控制面板样式 */
+        .ui-panel {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(26, 31, 41, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 280px;
+            z-index: 10;
+        }
+        .ui-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+        button {
+            flex: 1;
+            background: #2a3241;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            background: #3a4559;
+        }
+        button.active {
+            background: #34c759;
+            color: #000;
+            border-color: #34c759;
+        }
+        button.draw-active {
+            background: #ff9500;
+            color: #000;
+            border-color: #ff9500;
+        }
+        label {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+        input[type="range"] {
+            width: 100%;
+            accent-color: #34c759;
+        }
+        .value-display {
+            font-size: 12px;
+            font-family: monospace;
+            color: #34c759;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ui-panel">
+        <div class="btn-group">
+            <button id="btn-start">Play</button>
+            <button id="btn-step">Step</button>
+            <button id="btn-reset">Clear</button>
+        </div>
+        
+        <div class="ui-row">
+            <button id="btn-draw">Switch Mode: Pan / Zoom</button>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1);">
+
+        <div>
+            <div class="ui-row">
+                <label>Decay Threshold (≤ Lower)</label>
+                <span id="val-lower" class="value-display">5</span>
+            </div>
+            <input type="range" id="input-lower" min="0" max="18" value="5">
+        </div>
+
+        <div>
+            <div class="ui-row">
+                <label>Growth Threshold (≤ Upper)</label>
+                <span id="val-upper" class="value-display">9</span>
+            </div>
+            <input type="range" id="input-upper" min="0" max="18" value="9">
+        </div>
+
+        <div>
+            <div class="ui-row">
+                <label>Simulation Speed</label>
+                <span id="val-speed" class="value-display">1.0x</span>
+            </div>
+            <input type="range" id="input-speed" min="0.1" max="5.0" step="0.1" value="1.0">
+        </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // --- 1. 六边形数学与坐标转换 (Axial Coordinates) ---
+        const HEX_RADIUS = 16;
+
+        class HexCoord {
+            constructor(q, r) {
+                this.q = q;
+                this.r = r;
+            }
+
+            key() { return `${this.q},${this.r}`; }
+
+            static fromKey(key) {
+                const [q, r] = key.split(',').map(Number);
+                return new HexCoord(q, r);
+            }
+
+            toPoint(radius) {
+                const x = radius * 1.5 * this.q;
+                const y = radius * Math.sqrt(3) * (this.r + this.q / 2.0);
+                return { x, y };
+            }
+
+            static fromPoint(point, radius) {
+                const q = (2.0 / 3.0 * point.x) / radius;
+                const r = (-1.0 / 3.0 * point.x + Math.sqrt(3) / 3.0 * point.y) / radius;
+                return HexCoord.roundHex(q, r);
+            }
+
+            static roundHex(q, r) {
+                const s = -q - r;
+                let rq = Math.round(q), rr = Math.round(r), rs = Math.round(s);
+                const q_diff = Math.abs(rq - q);
+                const r_diff = Math.abs(rr - r);
+                const s_diff = Math.abs(rs - s);
+
+                if (q_diff > r_diff && q_diff > s_diff) {
+                    rq = -rr - rs;
+                } else if (r_diff > s_diff) {
+                    rr = -rq - rs;
+                }
+                return new HexCoord(rq, rr);
+            }
+
+            getNeighbors() {
+                const dirs = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
+                return dirs.map(([dq, dr]) => new HexCoord(this.q + dq, this.r + dr));
+            }
+        }
+
+        // --- 2. 状态与配置 ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let worldData = new Map(); // key: "q,r", value: 1, 2, 3
+        let isRunning = false;
+        let isDrawMode = false;
+        let limitLower = 5;
+        let limitUpper = 9;
+        let speedMultiplier = 1.0;
+
+        // 视口变换参数 (Camera)
+        let cameraOffset = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        let cameraZoom = 1.0;
+
+        // 动画与演化计时
+        let lastStepTime = 0;
+        const baseInterval = 500; // 0.5s
+
+        // --- 3. 核心演化算法 (完美对齐 Swift 端逻辑) ---
+        function stepSimulation() {
+            const nextWorld = new Map();
+            const candidates = new Set();
+
+            // 收集活细胞及其近邻
+            for (let key of worldData.keys()) {
+                candidates.add(key);
+                const coord = HexCoord.fromKey(key);
+                for (let n of coord.getNeighbors()) {
+                    candidates.add(n.key());
+                }
+            }
+
+            const safeLower = Math.min(limitLower, limitUpper);
+            const safeUpper = Math.max(limitLower, limitUpper);
+
+            for (let key of candidates) {
+                const current = worldData.get(key) || 0;
+                const coord = HexCoord.fromKey(key);
+                
+                let neighborsSum = 0;
+                for (let n of coord.getNeighbors()) {
+                    neighborsSum += (worldData.get(n.key()) || 0);
+                }
+
+                let nextVal = current;
+
+                if (neighborsSum <= safeLower) {
+                    // 区间一：衰减
+                    nextVal = Math.max(0, current - 1);
+                } else if (neighborsSum <= safeUpper) {
+                    // 区间二：成长 / 诞生
+                    if (current === 0) {
+                        nextVal = 1;
+                    } else {
+                        nextVal = Math.min(3, current + 1);
+                    }
+                } else {
+                    // 区间三：过载死亡
+                    nextVal = 0;
+                }
+
+                if (nextVal > 0) {
+                    nextWorld.set(key, nextVal);
+                }
+            }
+
+            worldData = nextWorld;
+        }
+
+        // --- 4. Canvas 高性能渲染 ---
+        function getCellColor(val) {
+            switch (val) {
+                case 1: return 'rgba(52, 204, 98, 0.8)';   // 绿色 (低阶)
+                case 2: return 'rgba(255, 153, 51, 0.8)';  // 橙色 (中阶)
+                case 3: return 'rgba(255, 77, 77, 0.8)';   // 红色 (高阶)
+                default: return 'transparent';
+            }
+        }
+
+        function drawHexagon(ctx, x, y, radius, fillVal) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (i * 60) * Math.PI / 180;
+                const px = x + (radius - 1) * Math.cos(angle);
+                const py = y + (radius - 1) * Math.sin(angle);
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+
+            if (fillVal > 0) {
+                ctx.fillStyle = getCellColor(fillVal);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.lineWidth = 1.5;
+            } else {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.lineWidth = 1;
+            }
+            ctx.stroke();
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            // 应用 Camera 平移和缩放
+            ctx.translate(cameraOffset.x, cameraOffset.y);
+            ctx.scale(cameraZoom, cameraZoom);
+
+            // 算出现在屏幕视口能看到的六边形坐标范围 (LOD 裁剪优化)
+            const padding = HEX_RADIUS * 4;
+            const minX = (-cameraOffset.x) / cameraZoom - padding;
+            const maxX = (canvas.width - cameraOffset.x) / cameraZoom + padding;
+            const minY = (-cameraOffset.y) / cameraZoom - padding;
+            const maxY = (canvas.height - cameraOffset.y) / cameraZoom + padding;
+
+            const topLeft = HexCoord.fromPoint({ x: minX, y: maxY }, HEX_RADIUS);
+            const bottomRight = HexCoord.fromPoint({ x: maxX, y: minY }, HEX_RADIUS);
+
+            const minQ = Math.min(topLeft.q, bottomRight.q) - 2;
+            const maxQ = Math.max(topLeft.q, bottomRight.q) + 2;
+            const minR = Math.min(topLeft.r, bottomRight.r) - 2;
+            const maxR = Math.max(topLeft.r, bottomRight.r) + 2;
+
+            // 渲染网格背景 + 活细胞
+            for (let q = minQ; q <= maxQ; q++) {
+                for (let r = minR; r <= maxR; r++) {
+                    const coord = new HexCoord(q, r);
+                    const pt = coord.toPoint(HEX_RADIUS);
+
+                    if (pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY) {
+                        const val = worldData.get(coord.key()) || 0;
+                        drawHexagon(ctx, pt.x, pt.y, HEX_RADIUS, val);
+                    }
+                }
+            }
+
+            ctx.restore();
+        }
+
+        function loop(timestamp) {
+            const effectiveInterval = baseInterval / Math.max(0.1, speedMultiplier);
+            if (isRunning && timestamp - lastStepTime > effectiveInterval) {
+                stepSimulation();
+                lastStepTime = timestamp;
+            }
+            render();
+            requestAnimationFrame(loop);
+        }
+
+        // --- 5. 事件交互处理 (Mouse/Touch) ---
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+        let lastDrawnCoordKey = null;
+
+        function screenToWorld(screenX, screenY) {
+            const x = (screenX - cameraOffset.x) / cameraZoom;
+            const y = (screenY - cameraOffset.y) / cameraZoom;
+            return { x, y };
+        }
+
+        function handlePointerDown(e) {
+            isDragging = true;
+            dragStart = { x: e.clientX, y: e.clientY };
+
+            if (isDrawMode) {
+                const worldPt = screenToWorld(e.clientX, e.clientY);
+                const coord = HexCoord.fromPoint(worldPt, HEX_RADIUS);
+                const key = coord.key();
+
+                const currentVal = worldData.get(key) || 0;
+                const newVal = (currentVal === 0) ? 3 : currentVal - 1;
+
+                if (newVal === 0) worldData.delete(key);
+                else worldData.set(key, newVal);
+
+                lastDrawnCoordKey = key;
+            }
+        }
+
+        function handlePointerMove(e) {
+            if (!isDragging) return;
+
+            if (isDrawMode) {
+                const worldPt = screenToWorld(e.clientX, e.clientY);
+                const coord = HexCoord.fromPoint(worldPt, HEX_RADIUS);
+                const key = coord.key();
+
+                if (key !== lastDrawnCoordKey) {
+                    worldData.set(key, 3); // 拖拽连续绘制 3 级全能细胞
+                    lastDrawnCoordKey = key;
+                }
+            } else {
+                // 平移视口
+                const dx = e.clientX - dragStart.x;
+                const dy = e.clientY - dragStart.y;
+                cameraOffset.x += dx;
+                cameraOffset.y += dy;
+                dragStart = { x: e.clientX, y: e.clientY };
+            }
+        }
+
+        function handlePointerUp() {
+            isDragging = false;
+            lastDrawnCoordKey = null;
+        }
+
+        function handleWheel(e) {
+            e.preventDefault();
+            const zoomFactor = 1.1;
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+
+            // 围绕鼠标位置进行缩放
+            const worldPt = screenToWorld(mouseX, mouseY);
+            
+            if (e.deltaY < 0) {
+                cameraZoom *= zoomFactor;
+            } else {
+                cameraZoom /= zoomFactor;
+            }
+            cameraZoom = Math.min(Math.max(0.3, cameraZoom), 4.0);
+
+            cameraOffset.x = mouseX - worldPt.x * cameraZoom;
+            cameraOffset.y = mouseY - worldPt.y * cameraZoom;
+        }
+
+        // --- 6. UI 交互与初始化 ---
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        canvas.addEventListener('mousedown', handlePointerDown);
+        window.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp);
+        canvas.addEventListener('wheel', handleWheel, { passive: false });
+
+        // DOM 绑定
+        const btnStart = document.getElementById('btn-start');
+        const btnStep = document.getElementById('btn-step');
+        const btnReset = document.getElementById('btn-reset');
+        const btnDraw = document.getElementById('btn-draw');
+
+        const inputLower = document.getElementById('input-lower');
+        const inputUpper = document.getElementById('input-upper');
+        const inputSpeed = document.getElementById('input-speed');
+
+        btnStart.addEventListener('click', () => {
+            isRunning = !isRunning;
+            btnStart.textContent = isRunning ? "Pause" : "Play";
+            btnStart.classList.toggle('active', isRunning);
+        });
+
+        btnStep.addEventListener('click', () => {
+            if (!isRunning) stepSimulation();
+        });
+
+        btnReset.addEventListener('click', () => {
+            isRunning = false;
+            btnStart.textContent = "Play";
+            btnStart.classList.remove('active');
+            worldData.clear();
+        });
+
+        btnDraw.addEventListener('click', () => {
+            isDrawMode = !isDrawMode;
+            btnDraw.textContent = isDrawMode ? "Switch Mode: Draw Cells" : "Switch Mode: Pan / Zoom";
+            btnDraw.classList.toggle('draw-active', isDrawMode);
+            canvas.classList.toggle('draw-mode', isDrawMode);
+        });
+
+        inputLower.addEventListener('input', (e) => {
+            limitLower = parseInt(e.target.value);
+            document.getElementById('val-lower').textContent = limitLower;
+        });
+
+        inputUpper.addEventListener('input', (e) => {
+            limitUpper = parseInt(e.target.value);
+            document.getElementById('val-upper').textContent = limitUpper;
+        });
+
+        inputSpeed.addEventListener('input', (e) => {
+            speedMultiplier = parseFloat(e.target.value);
+            document.getElementById('val-speed').textContent = speedMultiplier.toFixed(1) + 'x';
+        });
+
+        // 启动
+        resizeCanvas();
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>

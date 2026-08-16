@@ -16,10 +16,10 @@ final class AppState: ObservableObject {
     }
 
     init() {
-        self.hasSeenOnboarding = UserDefaults.standard.bool(forKey: Keys.hasSeenOnboarding)
+        self.hasSeenOnboarding = false
         self.isLoggedIn = UserDefaults.standard.bool(forKey: Keys.isLoggedIn)
     }
-
+    
     func logout() {
         isLoggedIn = false
     }

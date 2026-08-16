@@ -5,9 +5,9 @@ struct OnboardingView: View {
     @State private var page = 0
 
     private let pages: [(title: String, subtitle: String, symbol: String)] = [
-        ("结构", "先搭好棋盘：维度、网格、边界。", "square.grid.3x3.fill"),
-        ("规则", "再写规则：演化、邻域、守恒与涌现。", "slider.horizontal.3"),
-        ("开始", "从一次点击开始，让宇宙跑起来。", "sparkles")
+        ("Structure", "Build the foundation: dimensions, grid, and boundaries.", "square.grid.3x3.fill"),
+        ("Rules", "Define the rules: evolution, neighborhoods, conservation, and emergence.", "slider.horizontal.3"),
+        ("Begin", "Start with one click and let the universe evolve.", "sparkles")
     ]
 
     var body: some View {
@@ -36,7 +36,7 @@ struct OnboardingView: View {
                             Button {
                                 appState.hasSeenOnboarding = true
                             } label: {
-                                Text("开始")
+                                Text("Start")
                                     .font(.system(size: 18, weight: .semibold))
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 14)
@@ -48,7 +48,7 @@ struct OnboardingView: View {
                             Button {
                                 withAnimation { page = min(page + 1, pages.count - 1) }
                             } label: {
-                                Text("下一页")
+                                Text("Next")
                                     .font(.system(size: 18, weight: .semibold))
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 14)
@@ -66,7 +66,7 @@ struct OnboardingView: View {
             Button {
                 appState.hasSeenOnboarding = true
             } label: {
-                Text("跳过")
+                Text("Skip")
                     .font(.system(size: 16, weight: .semibold))
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)

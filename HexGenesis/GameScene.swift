@@ -2,17 +2,36 @@ import SpriteKit
 import GameplayKit
 import UIKit
 
-// MARK: - 数据结构
+// MARK: - Hexagonal Coordinate System 数据结构
+//
+// HexGenesis uses axial coordinates (q, r)
+// to represent positions on a hexagonal grid.
+//
+// This coordinate system simplifies:
+// - neighbor lookup
+// - distance calculation
+// - conversion between hex coordinates and screen positions
 struct HexCoord: Hashable {
     let q: Int
     let r: Int
     
+    //
+    // Converts a hexagonal grid coordinate into a screen position.
+    //
+    // The conversion allows logical hex cells
+    // to be rendered correctly using SpriteKit.
+    //
     func toPoint(size: CGFloat) -> CGPoint {
         let x = size * 1.5 * CGFloat(q)
         let y = size * sqrt(3) * (CGFloat(r) + CGFloat(q) / 2.0)
         return CGPoint(x: x, y: y)
     }
     
+    //
+    // Converts a screen position back into a hexagonal coordinate.
+    //
+    // Used for detecting user touches on the hex grid.
+    //
     static func from(point: CGPoint, size: CGFloat) -> HexCoord {
         let q = (2.0/3.0 * point.x) / size
         let r = (-1.0/3.0 * point.x + sqrt(3)/3.0 * point.y) / size
@@ -28,6 +47,12 @@ struct HexCoord: Hashable {
         return HexCoord(q: Int(rq), r: Int(rr))
     }
     
+    //
+    // Returns the six adjacent cells around this hexagon.
+    //
+    // Hexagonal grids have six neighbors,
+    // unlike square grids which usually have four or eight.
+    //
     var neighbors: [HexCoord] {
         let dirs = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]
         return dirs.map { HexCoord(q: q + $0.0, r: r + $0.1) }
@@ -35,6 +60,16 @@ struct HexCoord: Hashable {
 }
 
 // MARK: - 视觉节点类
+//
+// Visual representation of a single hexagonal cell.
+//
+// HexNode is responsible only for rendering:
+// - shape
+// - color
+// - animations
+//
+// Simulation data is stored separately in worldData.
+//
 class HexNode: SKShapeNode {
     let coord: HexCoord
     private var currentRenderVal: Int = -1 // 缓存当前渲染状态，避免重复触发动画
@@ -61,6 +96,13 @@ class HexNode: SKShapeNode {
     
     required init?(coder aDecoder: NSCoder) { fatalError() }
     
+    //
+    // Updates the visual appearance of this hex cell
+    // according to its current energy value.
+    //
+    // Higher energy levels use stronger visual effects
+    // to represent a more active state.
+    //
     func updateRenderState(val: Int, force: Bool = false) {
         if !force && currentRenderVal == val { return }
         currentRenderVal = val
@@ -109,15 +151,43 @@ class HexNode: SKShapeNode {
 }
 
 // MARK: - GameScene 主逻辑
+//
+// Main simulation scene.
+//
+// Responsibilities:
+// - managing the hexagonal world
+// - handling user interaction
+// - updating simulation steps
+// - controlling camera movement
+//
+// Future versions may separate simulation logic
+// into an independent engine layer.
+//
 class GameScene: SKScene, UIGestureRecognizerDelegate {
     
-    let hexRadius: CGFloat = 16
+    private let hexRadius: CGFloat = 16
     
+    //
+    // Energy thresholds controlling cellular evolution.
+    //
+    // Values below the lower limit decay.
+    // Values between limits grow.
+    // Values above the upper limit become unstable.
+    //
     private var limitLower: Int = 5
     private var limitUpper: Int = 9
     private var speedMultiplier: Double = 1.0
     private let baseUpdateInterval: TimeInterval = 0.5
     
+    //
+    // Stores the current state of the universe.
+    //
+    // Key:
+    //   Hex coordinate
+    //
+    // Value:
+    //   Energy level of the cell
+    //
     private var worldData: [HexCoord: Int] = [:]
     private var visibleNodes: [HexCoord: HexNode] = [:]
     private var activeBackgroundCoords = Set<HexCoord>()
@@ -152,6 +222,12 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
         nc.addObserver(self, selector: #selector(onRulesChanged), name: .rulesChanged, object: nil)
         nc.addObserver(self, selector: #selector(onRulesChanged), name: .speedChanged, object: nil)
         
+        //
+        // Dynamically loads visible hex cells based on camera position.
+        //
+        // This prevents unnecessary rendering and allows
+        // larger worlds with better performance.
+        //
         dynamicViewportLodLoading()
     }
     
@@ -289,6 +365,17 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
     }
     
     /// 核心算法：严格对齐 UI 区间（≤5 衰减、6~9 成长、>9 过载）的纯数据演化
+    /// //
+    // Advances the universe by one simulation step.
+    //
+    // The simulation follows a cellular automaton approach:
+    // each cell evaluates its neighbors and determines
+    // its next state based on local rules.
+    //
+    // A new world state is generated first,
+    // then replaces the current state to avoid
+    // modifying data during calculation.
+    //
     private func stepSimulation() {
         var nextWorld = worldData
         var candidates = Set<HexCoord>()
@@ -312,6 +399,18 @@ class GameScene: SKScene, UIGestureRecognizerDelegate {
             // ==========================================
             // 严格映射 UI 三段区间，绝无边界歧义
             // ==========================================
+            
+            // Evolution rules:
+            //
+            // Rule 1:
+            // Low energy environment causes decay.
+            //
+            // Rule 2:
+            // Balanced energy conditions allow growth.
+            //
+            // Rule 3:
+            // Excessive energy causes instability.
+            //
             if neighborsSum <= safeLower {
                 // 【区间一：0 ~ 5】衰减
                 // 活细胞能量递减，空格子（0-1=-1 -> max后保持0）继续保持空
